@@ -1,0 +1,14 @@
+---
+title: "First Blog"
+author: "陈耕"
+date: "2020/6/20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is my first blog.
