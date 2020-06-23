@@ -1,0 +1,194 @@
+---
+title: 抽卡中的概率问题
+author: GUTUN
+date: '2020-06-26'
+slug: 抽卡中的概率问题
+categories:
+  - Statistics
+  - Theory
+tags:
+  - Probability
+---
+
+
+
+<div id="前言" class="section level2">
+<h2>前言</h2>
+<p>经常会看到一些有关于某游戏有没有暗改概率的问题，看完评论区仿佛游戏公司暗自调低概率已经成为了“常识”。我不了解游戏公司内部的信息，可是对于一般的抽卡来说，不难看出这是重复的伯努利试验，因此可以很容易的通过假设检验来判断概率是否有误。<br />
+有关抽卡概率的想法只是一时兴起，内容也是非常基础，如有错误请多包涵。</p>
+</div>
+<div id="假设建言" class="section level2">
+<h2>假设建言</h2>
+<p>先考虑最一般的情况，假设某个池子的官方出货概率为<span class="math inline">\(p_0\)</span>，真实出货概率为<span class="math inline">\(p\)</span>，我们考虑两种实验：
++ 不停单抽，直到出货就停止。
++ 抽<span class="math inline">\(m\)</span>发，看一共抽出多少个。
+这显然是我们游戏中的两种常见情况，我们做出假设
+<span class="math display">\[H_0:p=p_0\longleftrightarrow H_1:p&lt;p_0,\]</span>
+备择假设选择<span class="math inline">\(p&lt;p_0\)</span>是因为通常我们显然不会因为一发入魂就认为概率有误，而是认为欧皇附体，所以拒绝域还是单边会更好一些。接下来考虑两种情况。</p>
+<div id="第一种情况" class="section level3">
+<h3>第一种情况</h3>
+<p>对于第一种情况，我们设第<span class="math inline">\(n\)</span>发出货，易知<span class="math inline">\(n\)</span>服从几何分布，即<span class="math display">\[P(n=N)=(1-p)^{N-1}p,\]</span>因此在显著性水平为<span class="math inline">\(\alpha\)</span>下的拒绝域为<span class="math display">\[W_1=\{n:\sum_{i=n}^\infty(1-p_0)^{i-1}p_0\le\alpha\}=\{n:n\ge \dfrac{ln\alpha}{ln(1-p_0)}+1\}.\]</span></p>
+</div>
+<div id="第二种情况" class="section level3">
+<h3>第二种情况</h3>
+<p>对于第二种情况，我们假设一共出货<span class="math inline">\(k\)</span>个，易知<span class="math inline">\(k\)</span>服从二项分布，即<span class="math display">\[P(k=N)=C_m^N p^N(1-p)^{m-N},\]</span>因此在显著性水平为<span class="math inline">\(\alpha\)</span>下的拒绝域为<span class="math display">\[W_2=\{k:k\le c\},\]</span>其中<span class="math inline">\(c=\max\{k:\displaystyle\sum_{i=0}^kC_m^ip_0^i(1-p_0)^{m-i}\le\alpha\}\)</span>。</p>
+</div>
+</div>
+<div id="实际情况" class="section level2">
+<h2>实际情况</h2>
+<p>要说上面的结论，其实并没有什么意思，不过是简单的假设检验，但是有趣的在于代入数值来看真实游戏中我们自身的感觉和实际是否冲突，在我们抽若干发沉船之后，我们是否真的能胸有成竹的说“概率有问题”。下面是简单的r代码，事实上用其它语言也可以很容易的实现,这里为了方便直接输出的拒绝域。</p>
+<pre class="r"><code>n &lt;- function(alpha, p_0) {
+  n_0 &lt;- log(alpha)/log(1-p_0) + 1
+  result &lt;- paste(&quot;$\\{n \\ge &quot;,as.character(n_0),&quot;\\}$&quot;, sep=&quot;&quot;)
+  return(result)
+}
+k &lt;- function(m, p_0, alpha) {
+  sum &lt;- 0
+  for (i in 0:m) {
+    sum &lt;- sum + choose(m, i)*p_0^i*(1-p_0)^(m-i)
+    if(sum &gt; alpha){
+      k &lt;- i-1
+      break()
+    }
+  }
+  if(k&lt;0){
+    result &lt;- &quot;$\\emptyset$&quot;
+  }
+  else{
+    result &lt;- paste(&quot;$\\{k \\le&quot;, as.character(k), &quot;\\}$&quot;, sep=&quot;&quot;)
+  }
+  return(result)
+}</code></pre>
+<p>下面列出一个表格，来列举一些常见游戏的常见情况。</p>
+<table>
+<thead>
+<tr class="header">
+<th><span class="math inline">\(\alpha\)</span></th>
+<th><span class="math inline">\(p_0\)</span></th>
+<th>第一种情况的拒绝域</th>
+<th><span class="math inline">\(m=10\)</span>时第二种情况的拒绝域</th>
+<th><span class="math inline">\(m=100\)</span>时第二种情况的拒绝域</th>
+<th><span class="math inline">\(m=300\)</span>时第二种情况的拒绝域</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0.01</td>
+<td>0.007</td>
+<td><span class="math inline">\(\{n \ge 656.576174254772\}\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+</tr>
+<tr class="even">
+<td>0.01</td>
+<td>0.01</td>
+<td><span class="math inline">\(\{n \ge 459.210576553388\}\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+</tr>
+<tr class="odd">
+<td>0.01</td>
+<td>0.015</td>
+<td><span class="math inline">\(\{n \ge 305.702960588772\}\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+</tr>
+<tr class="even">
+<td>0.01</td>
+<td>0.02</td>
+<td><span class="math inline">\(\{n \ge 228.948171183699\}\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+<td><span class="math inline">\(\{k \le0\}\)</span></td>
+</tr>
+<tr class="odd">
+<td>0.01</td>
+<td>0.025</td>
+<td><span class="math inline">\(\{n \ge 182.894506382451\}\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+<td><span class="math inline">\(\{k \le1\}\)</span></td>
+</tr>
+<tr class="even">
+<td>0.01</td>
+<td>0.05</td>
+<td><span class="math inline">\(\{n \ge 90.7811349607097\}\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+<td><span class="math inline">\(\{k \le0\}\)</span></td>
+<td><span class="math inline">\(\{k \le6\}\)</span></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr class="header">
+<th><span class="math inline">\(\alpha\)</span></th>
+<th><span class="math inline">\(p_0\)</span></th>
+<th>第一种情况的拒绝域</th>
+<th><span class="math inline">\(m=10\)</span>时第二种情况的拒绝域</th>
+<th><span class="math inline">\(m=100\)</span>时第二种情况的拒绝域</th>
+<th><span class="math inline">\(m=300\)</span>时第二种情况的拒绝域</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0.05</td>
+<td>0.007</td>
+<td><span class="math inline">\(\{n \ge 427.462133574048\}\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+</tr>
+<tr class="even">
+<td>0.05</td>
+<td>0.01</td>
+<td><span class="math inline">\(\{n \ge 299.072852213223\}\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+<td><span class="math inline">\(\{k \le0\}\)</span></td>
+</tr>
+<tr class="odd">
+<td>0.05</td>
+<td>0.015</td>
+<td><span class="math inline">\(\{n \ge 199.213845746806\}\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+<td><span class="math inline">\(\{k \le0\}\)</span></td>
+</tr>
+<tr class="even">
+<td>0.05</td>
+<td>0.02</td>
+<td><span class="math inline">\(\{n \ge 149.28370408337\}\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+<td><span class="math inline">\(\{k \le1\}\)</span></td>
+</tr>
+<tr class="odd">
+<td>0.05</td>
+<td>0.025</td>
+<td><span class="math inline">\(\{n \ge 119.325104425031\}\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+<td><span class="math inline">\(\{k \le2\}\)</span></td>
+</tr>
+<tr class="even">
+<td>0.05</td>
+<td>0.05</td>
+<td><span class="math inline">\(\{n \ge 59.4039748143197\}\)</span></td>
+<td><span class="math inline">\(\emptyset\)</span></td>
+<td><span class="math inline">\(\{k \le1\}\)</span></td>
+<td><span class="math inline">\(\{k \le8\}\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>结果中的空集表示不存在一个非负整数<span class="math inline">\(c\)</span>满足条件，这时我们可以认为样本量过少无法判断。从结果中可以看出，大多数情况下，我们一发十连没有出货是很难判断概率有问题的，即便是提高我们对错判的容忍度也不行。而百连不出货也是如此，至于三百连的情况，即便对于很多较高概率的池子来说如果不出货我们已经可以判断概率有误，但是对于某游戏（PCR）来说即便抽完一井也不能判断有问题，毕竟专抽某角色概率还是太低了。<br />
+于是可以得出结论，大多数情况来说，我们不能判断游戏公司对概率进行了暗改，不出货还是自我安慰：“恰巧这次比较非”吧。</p>
+</div>
+<div id="后记" class="section level2">
+<h2>后记</h2>
+<p>虽然我之前一些粗略的计算已经表明抽卡的概率与我们的直觉是相违背的，因为我们人类的大脑实在是无法分别一定程度以下的小概率事件，但是这个结果还是令我比较惊讶的，因为我意识到对于这样的结果，我们已经无法去通过假设检验判断大多数游戏概率是否有误了，因为目前绝大多数游戏都设置了保底，而对于保底的<span class="math inline">\(m\)</span>，对照上面的表格，要么远远小于<span class="math inline">\(n\)</span>，要么拒绝域是空集。除非我们拿多个账号再做实验，不过这已经脱离了我们一般人玩游戏的范畴，这里也就不做讨论了。<br />
+但是对于每个抽卡游戏，往往都会有很多人在论坛上抱怨自己没有出货，同时也会引来同病相怜的非酋以及“暗改概率”的阴谋论。我不认为这可以当做多个账号试验来做假设检验的依据，因为往往沉船的人才会去论坛抱怨，正常出货的人反而是沉默的大多数，这样取出的样本是有偏的，不能当做概率有问题的依据。在网络上，哪怕是0.1%的玩家，聚集起来在一个帖子里也是一大批人，我们不能因为一个帖子里统一的发泄就认为事实就是如此，越是大的样本越是要注意样本的无偏性，这是统计学的学习带给我的警示，告诉我一定要避免把少数发声的人当做整个群体，一定要经过自己的独立思考看待问题。</p>
+</div>
