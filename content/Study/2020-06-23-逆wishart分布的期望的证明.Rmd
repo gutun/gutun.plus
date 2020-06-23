@@ -23,10 +23,10 @@ tags:
 ## 一些补充
 ### 有关$\boldsymbol{Q}$的选择
 只要取
-`$$\boldsymbol{Q}=\begin{pmatrix}\frac{1}{\sqrt{n}}&\frac{1}{\sqrt{n}}&\frac{1}{\sqrt{n}}&\dots&\frac{1}{\sqrt{n}} \\ 
+$$\boldsymbol{Q}=\begin{pmatrix}\frac{1}{\sqrt{n}}&\frac{1}{\sqrt{n}}&\frac{1}{\sqrt{n}}&\dots&\frac{1}{\sqrt{n}} \\ 
 \frac{1}{\sqrt{2}}&-\frac{1}{\sqrt{2}}&0&\dots&0 \\
 \frac{1}{\sqrt{2\cdot 3}}&\frac{1}{\sqrt{2\cdot 3}}&-\frac{1}{\sqrt{2\cdot 3}}&\dots&0 \\
-\vdots&\vdots&\vdots&&\vdots \\ \frac{1}{\sqrt{(n-1)n}}&\frac{1}{\sqrt{(n-1)n}}&\frac{1}{\sqrt{(n-1)n}}&\dots&-\frac{1}{\sqrt{(n-1)n}} \end{pmatrix},$$`
+\vdots&\vdots&\vdots&&\vdots \\ \frac{1}{\sqrt{(n-1)n}}&\frac{1}{\sqrt{(n-1)n}}&\frac{1}{\sqrt{(n-1)n}}&\dots&-\frac{1}{\sqrt{(n-1)n}} \end{pmatrix},$$
 并注意到第一行的元素和为$\sqrt{n}$，第$n$列的元素和为$\dfrac{\sqrt{n-1}-1}{\sqrt{n(n-1)}}$，就可以得到$\boldsymbol{Q}\epsilon\epsilon'\neq\epsilon\epsilon'\boldsymbol{Q}$。
 
 ### 有关$\chi^2$分布的逆
