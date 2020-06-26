@@ -1,0 +1,75 @@
+---
+title: R语言学习笔记（1）
+author: GUTUN
+date: '2020-07-09'
+slug: r语言学习笔记-1
+categories:
+  - Statistics
+  - R
+tags:
+  - Programming
+---
+
+
+
+<div id="前言" class="section level2">
+<h2>前言</h2>
+<p>最近去<a href="https://www.codewars.com/">codewars</a>做了一点编程题，虽然都是一些很基础的题目，但是R语言并非类似C等较为底层的语言，在使用中没有必要重复造轮子。我认为更不能在使用中以重复造轮子为乐，虽然一些基础的操作是练习编程的好习题，但是在R中，往往有直接的函数来达成这些效果。所以我准备记录一些在学习中用到的轮子，尤其是<code>base</code>包中的函数，这对于我这种半吊子上手R直接就去应用的人来说尤为有用。</p>
+</div>
+<div id="正文" class="section level2">
+<h2>正文</h2>
+<div id="比较两个向量是否相等" class="section level4">
+<h4>比较两个向量是否相等</h4>
+<p><code>all(..., na.rm = FALSE)</code>接受任意个逻辑型向量作为参数，返回<code>TRUE</code>如果向量全为<code>TRUE</code>，反之则返回<code>FALSE</code>，参数<code>na.rm = TRUE</code>时忽略向量中的<code>NA</code>。如果传入的参数为空向量或者未传入参数，返回的结果都是<code>TRUE</code>，这样保证了<code>all(all(x),all(y)) == all(x,y)</code>即使<code>x</code>是空向量<em>（来自官方文档）</em>。<br />
+<code>any(..., na.rm = FALSE)</code>是类似的，区别是函数返回<code>TRUE</code>如果向量中至少一个值为<code>TRUE</code>，反之返回<code>FALSE</code>。如果参数为空向量也会返回<code>FALSE</code>。<br />
+在我想要判断两个向量是否相等时，例如<code>x</code>和<code>y</code>，我了解到可以使用<code>all(x == y)</code>来判断，注意如果在<code>if</code>语句中使用<code>(x == y) == rep(TRUE, length(x))</code>，只会按照向量的第一个值进行比较判断。<br />
+再之后，我又了解到可以使用<code>identical()</code>函数进行判断，<code>idential(x,y)</code>判断时严格的，严格比较两个变量是否完全相等，包括数据类型，例如<code>identical(1, as.integer(1))</code>会返回<code>FALSE</code>。其它参数可以参见文档。<br />
+如果要求放低，还可以使用<code>all.equal()</code>函数，这里函数不会比较变量的数据类型，同时允许变量间有一定的小差别，通过<code>tolerance</code>参数来调节，默认为<code>1.5e-8</code>。<code>all.equal()</code>只有在相等时返回<code>TRUE</code>，否则则会返回对于差距的描述，因此在使用时应当使用<code>isTrue(all.equal(x,y))</code>。其它参数参见文档。
+下面是几个实例。</p>
+<pre class="r"><code>x &lt;- c(1,2); y &lt;- c(1,3)
+if(all(x == y)) print(TRUE)
+if((x == y) == rep(TRUE, length(x))) print(TRUE)</code></pre>
+<pre><code>## Warning in if ((x == y) == rep(TRUE, length(x))) print(TRUE): 条件的长度大于一，
+## 因此只能用其第一元素</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>#identical函数
+x &lt;- c(1,2); y &lt;- c(1,2); z &lt;- c(1, 2)
+identical(x, y)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>identical(x, z)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>identical(1, as,integer(1))</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<pre class="r"><code>#all.equal函数
+x &lt;- c(1, 2); y &lt;- c(1.1, 1.9)
+all.equal(x, y, tolerance = 0.2)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>all.equal(1, as.integer(1))</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+</div>
+<div id="计算累计和" class="section level4">
+<h4>计算累计和</h4>
+<p>给定一个长度为<code>n</code>的数组，计算其前<code>k</code>项和，其中<code>1&lt;=k&lt;=n</code>。我曾在一个帖子<em>（<a href="https://cosx.org/">统计之都</a>上的帖子，不过我现在找不到了）</em>看到，众多大佬说R语言几乎所有问题都可以避免使用<code>for</code>语句，并且减少使用<code>for</code>语句可以有效减少运行时间。于是我突发奇想，使用一个下三角矩阵和数组做矩阵乘法，并自以为很高明，直到计算一个较大的数组时提示内存溢出——生成的矩阵太大了。<br />
+<code>cumsum()</code>就是求累计和的一个函数，它返回和原向量相同长度的向量，其第<code>k</code>项为原数组前<code>k</code>项和。类似的函数还有<code>cumprod()</code>，<code>cummax()</code>，<code>cummin()</code>。我通过一定的<a href="https://likan.info/cn/post/accessing-r-sources/">方法</a>找到了函数的源代码，发现源代码是由C书写的，使用的是递推的方法。</p>
+<pre class="cpp"><code>static SEXP cumsum(SEXP x, SEXP s)
+{
+    LDOUBLE sum = 0.;
+    double *rx = REAL(x), *rs = REAL(s);
+    for (R_xlen_t i = 0 ; i &lt; XLENGTH(x) ; i++) {
+    sum += rx[i]; /* NA and NaN propagated */
+    rs[i] = (double) sum;
+    }
+    return s;
+}</code></pre>
+<p>如果要从最后开始求和，可以使用<code>rev()</code>将数组倒序之后再使用<code>cumsum()</code>函数。</p>
+</div>
+<div id="字母表" class="section level4">
+<h4>字母表</h4>
+<p>C和C++里可以将英文字母转化为ASCII码进行运算，R里则不用那么麻烦。<code>LETTERS</code>和<code>letters</code>两个内置变量分别存储了大写英文字母和小写英文字母，对于字母的类似运算，可以使用<code>match()</code>函数将字母转化为数字再进行运算。<br />
+值得一提的是R里还有几个内置变量<code>month.abb</code>，<code>month.name</code>和<code>pi</code>,分别记录了月份的英文缩写，月份的英文名和<span class="math inline">\(\pi\)</span>的值。</p>
+</div>
+</div>
+<div id="后记" class="section level2">
+<h2>后记</h2>
+<p>越写越觉得这些东西太基础了，可是我可能使用过不少高级的包，却对基础的<code>base</code>包中的函数仍然不清楚，学习这些可以减少编程时的卡壳，对于真正着眼于解决实际问题很有帮助。</p>
+</div>
