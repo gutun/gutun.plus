@@ -1,0 +1,10 @@
+---
+title: 抽卡中的概率问题(3)
+author: GUTUN
+date: '2021-03-19'
+slug: probability-problems-in-gacha-games
+categories:
+  - Statistics
+tags:
+  - Probability
+---
